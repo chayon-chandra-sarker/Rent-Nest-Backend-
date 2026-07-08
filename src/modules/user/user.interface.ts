@@ -2,5 +2,11 @@ export interface registerUserPayload {
     name: string;
     email:string;
     password:string;
-    profilePhoto:string;
+};
+
+export interface UpdateProfilePayload {
+  name?: string;
+  phone?: string;
+  image?: string;
+  address?: string;
 }

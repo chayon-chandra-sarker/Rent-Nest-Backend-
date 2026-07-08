@@ -15,7 +15,7 @@ const registerUser = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,
-      message: "Register created successfully",
+      message: "User registered successfully",
       data: {
         user,
       },
@@ -23,28 +23,39 @@ const registerUser = catchAsync(
   },
 );
 
-const getMyProfile = catchAsync(async(req:Request, res:Response, next:NextFunction) =>{
-  // const {accessToken} = req.cookies;
-  // console.log(accessToken)
-  // const verifiedToken = jwtUtils.verifiedToken(accessToken, config.jwt_access_secret);
+const getMyProfile = catchAsync(
+  async (req: Request, res: Response) => {
+    const user = await userService.getMyProfileFromDB(req.user!.id);
 
-  // if(typeof verifiedToken === "string"){
-  //   throw new Error(verifiedToken)
-  // }
-  const profile = await userService.getMyProfileIntoDB(req.user?.id as string);
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Profile retrieved successfully",
+      data: user,
+    });
+  }
+);
 
-  sendResponse(res,{
-    success:true,
-    statusCode:httpStatus.OK,
-    message:"User profile fetched successfully",
-    data:{
-      profile
-    }
-  })
-});
+const updateMyProfile = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await userService.updateMyProfileIntoDB(
+      req.user!.id,
+      req.body
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Profile updated successfully",
+      data: result,
+    });
+  }
+);
+
 
 export const userController = {
   registerUser,
   getMyProfile,
   updateMyProfile,
+ 
 };

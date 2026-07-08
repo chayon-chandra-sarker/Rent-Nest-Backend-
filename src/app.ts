@@ -1,22 +1,44 @@
 import express from "express";
 import type { Application, Request, Response } from "express";
-import cors from "cors"
+import cors from "cors";
 import cookieParser from "cookie-parser";
 import config from "./config";
+import { globalErrorHandler } from "./errors/globalErrorHandler";
+import { authRoutes } from "./modules/auth/auth.route";
+import { userRouter } from "./modules/user/user.route";
+import { sendResponse } from "./utils/sendResponse";
+import httpStatus from "http-status";
+import { CategoryRoutes } from "./modules/category/category.route";
 
-const app : Application = express();
-app.use(cors({
+const app: Application = express();
+app.use(
+  cors({
     origin: config.app_url,
-    credentials: true
-}));
-
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.get("/", (req:Request, res:Response) => {
-  res.send('Hello World!')
-})
 
+app.get("/", (req: Request, res: Response) => {
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "RentNest API is running successfully",
+    data: {
+      name: "RentNest",
+      author: "Chayon Chandra Sarker",
+    },
+  });
+});
+
+app.use("/api/auth", userRouter);
+app.use("/api/auth", authRoutes);
+app.use("/api/user", userRouter);
+app.use("/api/category", CategoryRoutes);
+
+app.use(globalErrorHandler);
 export default app;
