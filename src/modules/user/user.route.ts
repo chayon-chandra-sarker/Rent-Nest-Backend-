@@ -13,6 +13,10 @@ router.post("/register", userController.registerUser);
 router.get("/me",auth(Role.ADMIN,Role.LANDLORD, Role.TENANT), userController.getMyProfile);
 
 router.put("/update",auth(Role.ADMIN, Role.LANDLORD, Role.TENANT), userController.updateMyProfile);
-
+router.put(
+  "/:id/role",
+  auth(Role.ADMIN),
+  userController.updateUserRole
+);
 
 export const userRouter = router;

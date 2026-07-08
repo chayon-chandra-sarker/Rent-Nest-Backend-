@@ -52,10 +52,24 @@ const updateMyProfile = catchAsync(
   }
 );
 
+const updateUserRole = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { role } = req.body;
+
+  const result = await userService.updateUserRoleIntoDB(id as string, role);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User role updated successfully",
+    data: result,
+  });
+});
 
 export const userController = {
   registerUser,
   getMyProfile,
   updateMyProfile,
+  updateUserRole,
  
 };

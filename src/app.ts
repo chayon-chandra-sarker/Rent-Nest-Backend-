@@ -9,6 +9,7 @@ import { userRouter } from "./modules/user/user.route";
 import { sendResponse } from "./utils/sendResponse";
 import httpStatus from "http-status";
 import { CategoryRoutes } from "./modules/category/category.route";
+import { PropertyRoutes } from "./modules/property/property.route";
 
 const app: Application = express();
 app.use(
@@ -39,6 +40,7 @@ app.use("/api/auth", userRouter);
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRouter);
 app.use("/api/category", CategoryRoutes);
+app.use("/api/property", PropertyRoutes);
 
 app.use(globalErrorHandler);
 export default app;

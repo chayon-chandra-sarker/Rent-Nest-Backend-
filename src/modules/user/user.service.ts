@@ -127,9 +127,36 @@ const updateMyProfileIntoDB = async (
   return updatedUser;
 };
 
+const updateUserRoleIntoDB = async (
+  id: string,
+  role: Role
+) => {
+  const isUserExist = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!isUserExist) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+
+  const result = await prisma.user.update({
+    where: {
+      id,
+    },
+    data: {
+      role,
+    },
+  });
+
+  return result;
+};
+
 
 export const userService = {
   registerUserIntoDB,
   getMyProfileFromDB,
   updateMyProfileIntoDB,
+  updateUserRoleIntoDB,
 };
