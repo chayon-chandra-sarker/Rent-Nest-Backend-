@@ -1,3 +1,5 @@
+
+
 export interface registerUserPayload {
     name: string;
     email:string;
@@ -9,4 +11,5 @@ export interface UpdateProfilePayload {
   phone?: string;
   image?: string;
   address?: string;
-}
+};
+

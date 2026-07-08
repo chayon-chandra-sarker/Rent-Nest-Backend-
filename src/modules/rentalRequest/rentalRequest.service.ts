@@ -225,10 +225,44 @@ const getSingleRentalRequestFromDB = async (
 
   return result;
 };
+
+const getAllRentalRequestsForAdminFromDB = async () => {
+  const result = await prisma.rentalRequest.findMany({
+    include: {
+      tenant: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          status: true,
+        },
+      },
+      property: {
+        include: {
+          landlord: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          category: true,
+        },
+      },
+    },
+    orderBy: {
+      requestedAt: "desc",
+    },
+  });
+
+  return result;
+};
 export const rentalRequestServices = {
   createRentalRequestIntoDB,
   updateRentalRequestIntoDB,
   getLandlordRequestsFromDB,
   getMyRentalRequestsFromDB,
   getSingleRentalRequestFromDB,
+  getAllRentalRequestsForAdminFromDB,
 };

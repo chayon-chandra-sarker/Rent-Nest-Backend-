@@ -74,10 +74,25 @@ const deleteProperty = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllPropertiesForAdmin = catchAsync(
+  async (req: Request, res: Response) => {
+    const result =
+      await PropertyServices.getAllPropertiesForAdminFromDB();
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "All properties retrieved successfully",
+      data: result,
+    });
+  }
+);
+
 export const propertyControllers = {
   createProperty,
   getAllProperties,
   getSingleProperty,
   updateProperty,
   deleteProperty,
+  getAllPropertiesForAdmin,
 };

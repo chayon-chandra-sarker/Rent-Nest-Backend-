@@ -1,14 +1,13 @@
 import bcrypt from "bcrypt";
 import { prisma } from "../../lib/prisma";
 import config from "../../config";
-import type { registerUserPayload, UpdateProfilePayload } from "./user.interface";
+import type {
+  registerUserPayload,
+  UpdateProfilePayload,
+} from "./user.interface";
 import AppError from "../../errors/AppError";
 import httpStatus from "http-status";
-import type { Role } from "../../../generated/prisma/enums";
-
-
-
-
+import type { Role, Status } from "../../../generated/prisma/enums";
 
 const registerUserIntoDB = async (payload: registerUserPayload) => {
   const { name, email, password } = payload;
@@ -75,7 +74,7 @@ const getMyProfileFromDB = async (userId: string) => {
 
 const updateMyProfileIntoDB = async (
   userId: string,
-  payload: UpdateProfilePayload
+  payload: UpdateProfilePayload,
 ) => {
   const isUserExist = await prisma.user.findUnique({
     where: {
@@ -127,10 +126,7 @@ const updateMyProfileIntoDB = async (
   return updatedUser;
 };
 
-const updateUserRoleIntoDB = async (
-  id: string,
-  role: Role
-) => {
+const updateUserRoleIntoDB = async (id: string, role: Role) => {
   const isUserExist = await prisma.user.findUnique({
     where: {
       id,
@@ -153,10 +149,73 @@ const updateUserRoleIntoDB = async (
   return result;
 };
 
+const getAllUsersFromDB = async () => {
+  const result = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true,
+      phone: true,
+      image: true,
+      address: true,
+      createdAt: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return result;
+};
+
+const updateUserStatusIntoDB = async (id: string, status: Status) => {
+  const isUserExist = await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!isUserExist) {
+    throw new AppError(httpStatus.NOT_FOUND, "User not found");
+  }
+  if (isUserExist.role === "ADMIN") {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Admin account cannot be banned.",
+    );
+  }
+
+  const result = await prisma.user.update({
+    where: {
+      id,
+    },
+    data: {
+      status,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true,
+      phone: true,
+      image: true,
+      address: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+
+  return result;
+};
 
 export const userService = {
   registerUserIntoDB,
   getMyProfileFromDB,
   updateMyProfileIntoDB,
   updateUserRoleIntoDB,
+  getAllUsersFromDB,
+  updateUserStatusIntoDB,
 };

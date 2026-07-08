@@ -66,10 +66,36 @@ const updateUserRole = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+  const result = await userService.getAllUsersFromDB();
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Users retrieved successfully",
+    data: result,
+  });
+});
+
+const updateUserStatus = catchAsync(async (req: Request, res: Response) => {
+  const result = await userService.updateUserStatusIntoDB(
+    req.params.id as string,
+    req.body.status
+  );
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "User status updated successfully",
+    data: result,
+  });
+});
+
 export const userController = {
   registerUser,
   getMyProfile,
   updateMyProfile,
   updateUserRole,
- 
+  getAllUsers,
+  updateUserStatus,
 };

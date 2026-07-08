@@ -11,6 +11,7 @@ import httpStatus from "http-status";
 import { CategoryRoutes } from "./modules/category/category.route";
 import { PropertyRoutes } from "./modules/property/property.route";
 import { rentalRequestRoutes } from "./modules/rentalRequest/rentalRequest.route";
+import { reviewRoutes } from "./modules/review/review.route";
 
 const app: Application = express();
 app.use(
@@ -43,6 +44,7 @@ app.use("/api/user", userRouter);
 app.use("/api/category", CategoryRoutes);
 app.use("/api/property", PropertyRoutes);
 app.use("/api/rental", rentalRequestRoutes);
+app.use("/api/review", reviewRoutes);
 
 app.use(globalErrorHandler);
 export default app;

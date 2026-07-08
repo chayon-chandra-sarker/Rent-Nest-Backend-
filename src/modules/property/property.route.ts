@@ -28,4 +28,10 @@ router.delete(
   propertyControllers.deleteProperty
 );
 
+router.get(
+  "/admin/properties",
+  auth(Role.ADMIN),
+  propertyControllers.getAllPropertiesForAdmin
+);
+
 export const PropertyRoutes = router;

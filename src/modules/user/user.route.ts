@@ -19,4 +19,16 @@ router.put(
   userController.updateUserRole
 );
 
+router.get(
+  "/admin/all-users",
+  auth(Role.ADMIN),
+  userController.getAllUsers
+);
+
+router.put(
+  "/admin/update/:id",
+  auth(Role.ADMIN),
+ userController.updateUserStatus
+);
+
 export const userRouter = router;

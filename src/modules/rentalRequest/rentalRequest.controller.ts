@@ -111,11 +111,26 @@ const getSingleRentalRequest = catchAsync(
     });
   }
 );
+
+const getAllRentalRequestsForAdmin = catchAsync(
+  async (req: Request, res: Response) => {
+    const result =
+      await rentalRequestServices.getAllRentalRequestsForAdminFromDB();
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "All rental requests retrieved successfully",
+      data: result,
+    });
+  }
+);
 export const rentalRequestControllers = {
   createRentalRequest,
   updateRentalRequest,
   getLandlordRequests,
   getMyRentalRequests,
   getSingleRentalRequest,
+  getAllRentalRequestsForAdmin,
 
 };

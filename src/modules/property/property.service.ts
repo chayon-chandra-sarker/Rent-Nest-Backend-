@@ -115,10 +115,39 @@ const deletePropertyFromDB = async (id: string) => {
   return null;
 };
 
+const getAllPropertiesForAdminFromDB = async () => {
+  const result = await prisma.property.findMany({
+    include: {
+      landlord: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          status: true,
+        },
+      },
+      category: true,
+      _count: {
+        select: {
+          rentalRequests: true,
+          reviews: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return result;
+};
+
 export const PropertyServices = {
   createPropertyIntoDB,
   getAllPropertiesFromDB,
   getSinglePropertyFromDB,
   updatePropertyIntoDB,
   deletePropertyFromDB,
+  getAllPropertiesForAdminFromDB,
 };
