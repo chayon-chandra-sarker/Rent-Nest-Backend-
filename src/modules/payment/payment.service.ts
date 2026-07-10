@@ -3,7 +3,6 @@ import config from "../../config";
 import httpStatus from "http-status";
 import { prisma } from "../../lib/prisma";
 import AppError from "../../errors/AppError";
-import { backup } from "node:sqlite";
 
 const stripe = new Stripe(config.strip_secret_key as string);
 
@@ -81,15 +80,17 @@ const createCheckoutSession = async (userId: string) => {
 };
 
 const handleWebhook = async (payload: Buffer, signature: string) => {
+  console.log("Webhook hit");
   const endpointSecret = config.strip_webhook_secret;
   const event = stripe.webhooks.constructEvent(
     payload,
     signature,
     endpointSecret,
   );
+  console.log("Event:", event.type);
   switch (event.type) {
     case "checkout.session.completed":
-      // console.log(event.data.object);
+   
       const session: Stripe.Checkout.Session = event.data.object;
       const rentalRequestId = session.metadata?.rentalRequestId;
       const paymentIntentId = session.payment_intent as string;
@@ -109,6 +110,7 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
           paidAt: new Date(),
         },
       });
+
 
       break;
     // case "customer.subscription.updated":
