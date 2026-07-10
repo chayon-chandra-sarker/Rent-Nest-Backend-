@@ -8,9 +8,6 @@ model Payment {
 
   status PaymentStatus @default(PENDING)
 
-  stripeSessionId       String? @unique
-
-
   rentalRequestId String        @unique
   rentalRequest   RentalRequest @relation(fields: [rentalRequestId], references: [id])
 
