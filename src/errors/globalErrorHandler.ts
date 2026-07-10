@@ -1,9 +1,9 @@
 import type { ErrorRequestHandler } from "express";
 import httpStatus from "http-status";
-import { Prisma } from "../../generated/prisma/client";
 import { ZodError } from "zod";
 
 import AppError from "./AppError";
+import { Prisma } from "../../generated/prisma/client";
 
 export const globalErrorHandler: ErrorRequestHandler = (
   error,
