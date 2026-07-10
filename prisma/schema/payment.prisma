@@ -3,8 +3,13 @@ model Payment {
   transactionId String          @unique
   provider      PaymentProvider @default(STRIPE)
 
-  amount Decimal
+  amount   Decimal @db.Decimal(10, 2)
+  currency String  @default("BDT")
+
   status PaymentStatus @default(PENDING)
+
+  stripeSessionId       String? @unique
+
 
   rentalRequestId String        @unique
   rentalRequest   RentalRequest @relation(fields: [rentalRequestId], references: [id])

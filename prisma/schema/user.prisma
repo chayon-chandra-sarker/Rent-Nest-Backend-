@@ -10,9 +10,10 @@ model User {
   phone   String? @unique
   image   String?
   address String?
-
+  stripeCustomerId String? @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+ 
 
   properties Property[]
 
