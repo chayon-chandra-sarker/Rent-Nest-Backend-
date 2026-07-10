@@ -49,8 +49,20 @@ const getMyPayments = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllPayments = catchAsync(async (req:Request, res:Response) => {
+  const result = await paymentService.getAllPaymentsFromDB();
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "All payments retrieved successfully",
+    data: result,
+  });
+});
+
 export const paymentController = {
   createCheckoutSession,
   handleWebhook,
   getMyPayments,
+  getAllPayments,
 };

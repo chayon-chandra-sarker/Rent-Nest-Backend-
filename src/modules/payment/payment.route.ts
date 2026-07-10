@@ -15,4 +15,10 @@ router.get(
   paymentController.getMyPayments
 );
 
+router.get(
+  "/all-payments",
+  auth(Role.ADMIN),
+  paymentController.getAllPayments
+);
+
 export const paymentRouter = router;
