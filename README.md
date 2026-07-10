@@ -257,6 +257,9 @@ https://github.com/your-github
 LinkedIn:
 https://linkedin.com/in/your-linkedin
 
+Postman Docs:
+https://enterprise-rent-a-car.docs.buildwithfern.com/rent-nest/get-user/get-profile
+
 ---
 
 # 📜 License
