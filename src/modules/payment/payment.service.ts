@@ -90,26 +90,7 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
   switch (event.type) {
     case "checkout.session.completed":
       console.log(event.data.object);
-      const session: Stripe.Checkout.Session = event.data.object;
-      const rentalRequestId = session.metadata?.rentalRequestId;
-      const paymentIntentId = session.payment_intent as string;
-      // const stripeCustomerId = session.customer;
-
-
-      if (!rentalRequestId || !paymentIntentId) {
-        throw new Error("Missing payment data");
-      }
-
-      await prisma.payment.update({
-        where: {
-          rentalRequestId,
-        },
-        data: {
-          status: "COMPLETED",
-          transactionId: paymentIntentId,
-          paidAt: new Date(),
-        },
-      });
+      await handleCheckoutCompiled(event.data.object)
 
       break;
     case "customer.subscription.updated":
@@ -120,6 +101,27 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
       // Unexpected event type
       console.log(`No event matched Unhandled event type ${event.type}.`);
   }
+};
+
+const handleCheckoutCompiled = async (session: Stripe.Checkout.Session) => {
+  const rentalRequestId = session.metadata?.rentalRequestId;
+  const paymentIntentId = session.payment_intent as string;
+  // const stripeCustomerId = session.customer;
+
+  if (!rentalRequestId || !paymentIntentId) {
+    throw new Error("Missing payment data");
+  }
+
+  await prisma.payment.update({
+    where: {
+      rentalRequestId,
+    },
+    data: {
+      status: "COMPLETED",
+      transactionId: paymentIntentId,
+      paidAt: new Date(),
+    },
+  });
 };
 
 export const paymentService = {
