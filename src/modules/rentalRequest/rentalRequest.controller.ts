@@ -146,6 +146,25 @@ const getLandlordRentalRequests = catchAsync(
     });
   },
 );
+
+const getMyRentalRequestsUser = catchAsync(
+  async (req: Request, res: Response) => {
+    if (!req.user?.id) {
+      throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized");
+    }
+
+    const result = await rentalRequestServices.getMyRentalRequestsUserFromDB(
+      req.user.id,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "My rental requests retrieved successfully",
+      data: result,
+    });
+  },
+);
 export const rentalRequestControllers = {
   createRentalRequest,
   updateRentalRequest,
@@ -154,6 +173,7 @@ export const rentalRequestControllers = {
   getSingleRentalRequest,
   getAllRentalRequestsForAdmin,
   getLandlordRentalRequests,
+  getMyRentalRequestsUser,
 
 
 };

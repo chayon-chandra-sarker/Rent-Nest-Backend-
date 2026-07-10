@@ -49,4 +49,10 @@ router.get(
  rentalRequestControllers.getLandlordRentalRequests
 );
 
+router.get(
+  "/my",
+  auth(Role.TENANT),
+  rentalRequestControllers.getMyRentalRequestsUser,
+);
+
 export const rentalRequestRoutes = router;

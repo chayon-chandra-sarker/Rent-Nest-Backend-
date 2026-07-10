@@ -297,6 +297,42 @@ const getLandlordRentalRequestsFromDB = async (landlordId: string) => {
   return requests;
 };
 
+const getMyRentalRequestsUserFromDB = async (tenantId: string) => {
+  const requests = await prisma.rentalRequest.findMany({
+    where: {
+      tenantId,
+    },
+    include: {
+      property: {
+        select: {
+          id: true,
+          title: true,
+          location: true,
+          price: true,
+          bedrooms: true,
+          bathrooms: true,
+          isAvailable: true,
+        },
+      },
+      payment: {
+        select: {
+          transactionId: true,
+          amount: true,
+          currency: true,
+          status: true,
+          paidAt: true,
+        },
+      },
+    },
+    orderBy: {
+      requestedAt: "desc",
+    },
+  });
+
+  return requests;
+};
+
+
 export const rentalRequestServices = {
   createRentalRequestIntoDB,
   updateRentalRequestIntoDB,
@@ -305,4 +341,5 @@ export const rentalRequestServices = {
   getSingleRentalRequestFromDB,
   getAllRentalRequestsForAdminFromDB,
   getLandlordRentalRequestsFromDB,
+  getMyRentalRequestsUserFromDB,
 };
