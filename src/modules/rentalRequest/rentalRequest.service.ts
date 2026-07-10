@@ -258,6 +258,8 @@ const getAllRentalRequestsForAdminFromDB = async () => {
 
   return result;
 };
+
+
 export const rentalRequestServices = {
   createRentalRequestIntoDB,
   updateRentalRequestIntoDB,

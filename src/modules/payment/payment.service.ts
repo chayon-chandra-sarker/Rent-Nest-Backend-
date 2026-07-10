@@ -123,9 +123,41 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
   }
 };
 
-// const handleCheckoutCompiled = async () => {};
+const getMyPayments = async (userId: string) => {
+  const payments = await prisma.payment.findMany({
+    where: {
+      rentalRequest: {
+        tenantId: userId,
+      },
+    },
+    include: {
+      rentalRequest: {
+        include: {
+          property: {
+            select: {
+              title: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return payments.map((payment) => ({
+    amount: payment.amount,
+    currency: payment.currency,
+    status: payment.status,
+    paidAt: payment.paidAt,
+    transactionId: payment.transactionId,
+    propertyTitle: payment.rentalRequest.property.title,
+  }));
+};
 
 export const paymentService = {
   createCheckoutSession,
   handleWebhook,
+  getMyPayments,
 };

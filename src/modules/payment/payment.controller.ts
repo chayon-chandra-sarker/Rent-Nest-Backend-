@@ -3,6 +3,7 @@ import httpStatus from "http-status";
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { paymentService } from "./payment.service";
+import AppError from "../../errors/AppError";
 
 
 const createCheckoutSession = catchAsync(
@@ -32,7 +33,24 @@ const handleWebhook = catchAsync(async(req: Request, res:Response, next:NextFunc
     data: null,
    })
 });
+
+const getMyPayments = catchAsync(async (req: Request, res: Response) => {
+  if (!req.user?.id) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized");
+  }
+
+  const result = await paymentService.getMyPayments(req.user.id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "My payments retrieved successfully",
+    data: result,
+  });
+});
+
 export const paymentController = {
   createCheckoutSession,
   handleWebhook,
+  getMyPayments,
 };
