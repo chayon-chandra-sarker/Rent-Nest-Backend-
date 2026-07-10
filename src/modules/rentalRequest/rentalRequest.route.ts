@@ -43,4 +43,10 @@ router.get(
   rentalRequestControllers.getAllRentalRequestsForAdmin
 );
 
+router.get(
+  "/landlord",
+  auth(Role.LANDLORD),
+ rentalRequestControllers.getLandlordRentalRequests
+);
+
 export const rentalRequestRoutes = router;

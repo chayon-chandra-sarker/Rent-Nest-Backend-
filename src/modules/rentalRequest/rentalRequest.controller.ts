@@ -6,6 +6,7 @@ import type { Request, Response } from "express";
 import { rentalRequestServices } from "./rentalRequest.service";
 import { sendResponse } from "../../utils/sendResponse";
 
+
 const createRentalRequest = catchAsync(
   async (req: Request, res: Response) => {
     if (!req.user) {
@@ -125,6 +126,26 @@ const getAllRentalRequestsForAdmin = catchAsync(
     });
   }
 );
+
+const getLandlordRentalRequests = catchAsync(
+  async (req: Request, res: Response) => {
+    if (!req.user?.id) {
+      throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized");
+    }
+
+    const result =
+      await rentalRequestServices.getLandlordRentalRequestsFromDB(
+        req.user.id,
+      );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Landlord rental requests retrieved successfully",
+      data: result,
+    });
+  },
+);
 export const rentalRequestControllers = {
   createRentalRequest,
   updateRentalRequest,
@@ -132,5 +153,7 @@ export const rentalRequestControllers = {
   getMyRentalRequests,
   getSingleRentalRequest,
   getAllRentalRequestsForAdmin,
+  getLandlordRentalRequests,
+
 
 };
