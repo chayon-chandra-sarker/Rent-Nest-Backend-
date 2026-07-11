@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "postinstall": "prisma generate",
     "stripe:webhook": "stripe listen --forward-to localhost:5000/api/payment/webhook",
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && find dist -type f"
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
