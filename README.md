@@ -4,6 +4,10 @@ A secure and scalable REST API for a Rental Property Management System built wit
 
 This backend allows **Admins**, **Landlords**, and **Tenants** to manage rental properties, rental requests, payments, and user accounts through role-based authentication.
 
+Admin Credentials:
+-->email: chayon@gmail.com
+-->password: 12345
+
 ---
 
 ## 🚀 Live API
@@ -11,7 +15,7 @@ This backend allows **Admins**, **Landlords**, and **Tenants** to manage rental 
 > Add your deployed backend URL here
 
 ```
-https://your-backend-url.com
+https://rent-nest-backend-fiy9.onrender.com/
 ```
 
 ---
@@ -91,7 +95,7 @@ Admin Dashboard includes:
 ## Clone Repository
 
 ```bash
-git clone https://github.com/your-username/RentNest-Backend.git
+git clone https://github.com/chayon-chandra-sarker/Rent-Nest-Backend-
 ```
 
 ```bash
@@ -242,23 +246,22 @@ npm start
 Deploy easily on:
 
 - Render
-- Railway
-- VPS
 
 ---
 
 # 👨‍💻 Author
 
-**Chayon Sarker**
+**Chayon Chandra Sarker**
 
 GitHub:
-https://github.com/your-github
+https://github.com/chayon-chandra-sarker
 
 LinkedIn:
 https://linkedin.com/in/your-linkedin
 
 Postman Docs:
 https://enterprise-rent-a-car.docs.buildwithfern.com/rent-nest/get-user/get-profile
+
 
 ---
 
