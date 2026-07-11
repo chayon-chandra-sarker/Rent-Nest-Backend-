@@ -12,8 +12,6 @@ Admin Credentials:
 
 ## 🚀 Live API
 
-> Add your deployed backend URL here
-
 ```
 https://rent-nest-backend-fiy9.onrender.com/
 ```
