@@ -13,7 +13,6 @@ import { PropertyRoutes } from "./modules/property/property.route";
 import { rentalRequestRoutes } from "./modules/rentalRequest/rentalRequest.route";
 import { reviewRoutes } from "./modules/review/review.route";
 import { paymentRouter } from "./modules/payment/payment.route";
-import { stripe } from "./lib/stripe";
 import { dashboardRoute } from "./modules/dashboard/dashboard.route";
 
 const app: Application = express();
