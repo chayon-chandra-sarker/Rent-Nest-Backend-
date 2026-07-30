@@ -14,7 +14,7 @@ router.get("/me",auth(Role.ADMIN,Role.LANDLORD, Role.TENANT), userController.get
 
 router.put("/update",auth(Role.ADMIN, Role.LANDLORD, Role.TENANT), userController.updateMyProfile);
 router.put(
-  "/:id/role",
+  "/update/role/:id",
   auth(Role.ADMIN),
   userController.updateUserRole
 );
