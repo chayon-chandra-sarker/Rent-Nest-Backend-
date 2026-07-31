@@ -1,14 +1,19 @@
-import { Router } from "express";
+import { Router, type IRouter } from "express";
 import { auth } from "../../middleware/auth";
 import { Role } from "../../../generated/prisma/enums";
 import { propertyControllers } from "./property.controller";
 
-const router = Router();
+const router: IRouter = Router();
 
+router.get(
+  "/all-properties",
+  propertyControllers.getAllProperties
+);
 
-router.get("/all-properties", propertyControllers.getAllProperties);
-router.get("/single/:id", propertyControllers.getSingleProperty);
-
+router.get(
+  "/single/:id",
+  propertyControllers.getSingleProperty
+);
 
 router.post(
   "/create",
@@ -28,10 +33,11 @@ router.delete(
   propertyControllers.deleteProperty
 );
 
+// Admin
 router.get(
   "/admin/properties",
   auth(Role.ADMIN),
   propertyControllers.getAllPropertiesForAdmin
 );
 
-export const PropertyRoutes = router;
+export const PropertyRoutes: IRouter = router;
