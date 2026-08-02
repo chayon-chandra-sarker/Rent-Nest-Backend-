@@ -6,10 +6,6 @@ import { sendResponse } from "../../utils/sendResponse";
 import { paymentService } from "./payment.service";
 import AppError from "../../errors/AppError";
 
-/* =========================================================
-   CREATE CHECKOUT SESSION
-========================================================= */
-
 const createCheckoutSession = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
@@ -32,10 +28,6 @@ const createCheckoutSession = catchAsync(
     });
   },
 );
-
-/* =========================================================
-   STRIPE WEBHOOK
-========================================================= */
 
 const handleWebhook = catchAsync(
   async (req: Request, res: Response) => {
@@ -65,10 +57,6 @@ const handleWebhook = catchAsync(
   },
 );
 
-/* =========================================================
-   GET MY PAYMENTS
-========================================================= */
-
 const getMyPayments = catchAsync(
   async (req: Request, res: Response) => {
     if (!req.user?.id) {
@@ -91,10 +79,6 @@ const getMyPayments = catchAsync(
     });
   },
 );
-
-/* =========================================================
-   GET LANDLORD PAYMENTS
-========================================================= */
 
 const getLandlordPayments = catchAsync(
   async (req: Request, res: Response) => {
@@ -120,10 +104,6 @@ const getLandlordPayments = catchAsync(
   },
 );
 
-/* =========================================================
-   GET ALL PAYMENTS
-========================================================= */
-
 const getAllPayments = catchAsync(
   async (req: Request, res: Response) => {
     const result =
@@ -137,10 +117,6 @@ const getAllPayments = catchAsync(
     });
   },
 );
-
-/* =========================================================
-   EXPORT
-========================================================= */
 
 export const paymentController = {
   createCheckoutSession,

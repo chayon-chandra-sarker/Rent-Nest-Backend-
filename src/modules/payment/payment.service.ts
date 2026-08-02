@@ -6,10 +6,6 @@ import AppError from "../../errors/AppError";
 
 const stripe = new Stripe(config.strip_secret_key as string);
 
-/* =========================================================
-   CREATE CHECKOUT SESSION
-========================================================= */
-
 const createCheckoutSession = async (userId: string) => {
   const rentalRequest = await prisma.rentalRequest.findFirstOrThrow({
     where: {
@@ -28,20 +24,12 @@ const createCheckoutSession = async (userId: string) => {
     },
   });
 
-  /* =========================================
-     CHECK PAYMENT ALREADY COMPLETED
-  ========================================= */
-
   if (rentalRequest.payment?.status === "COMPLETED") {
     throw new AppError(
       httpStatus.BAD_REQUEST,
       "Payment already completed",
     );
   }
-
-  /* =========================================
-     STRIPE CUSTOMER
-  ========================================= */
 
   let stripeCustomerId = user.stripeCustomerId;
 
@@ -66,10 +54,6 @@ const createCheckoutSession = async (userId: string) => {
     });
   }
 
-  /* =========================================
-     CREATE PENDING PAYMENT
-  ========================================= */
-
   if (!rentalRequest.payment) {
     await prisma.payment.create({
       data: {
@@ -86,10 +70,6 @@ const createCheckoutSession = async (userId: string) => {
       rentalRequest.id,
     );
   }
-
-  /* =========================================
-     STRIPE CHECKOUT
-  ========================================= */
 
   const session = await stripe.checkout.sessions.create({
     line_items: [
@@ -114,55 +94,24 @@ const createCheckoutSession = async (userId: string) => {
     },
   });
 
-  console.log("Stripe Checkout Session:", session.id);
-
-  console.log(
-    "Rental Request ID:",
-    rentalRequest.id,
-  );
-
+ 
   return {
     paymentUrl: session.url,
   };
 };
 
-/* =========================================================
-   STRIPE WEBHOOK
-========================================================= */
-
 const handleWebhook = async (
   payload: Buffer,
   signature: string,
 ) => {
-  console.log("=================================");
-  console.log("WEBHOOK START");
-  console.log("=================================");
-
-  console.log("Payload is Buffer:", Buffer.isBuffer(payload));
-
-  console.log("Signature exists:", !!signature);
-
-  console.log(
-    "Webhook secret exists:",
-    !!config.strip_webhook_secret,
-  );
 
   try {
-    /* =========================================
-       VERIFY STRIPE EVENT
-    ========================================= */
-
+ 
     const event = stripe.webhooks.constructEvent(
       payload,
       signature,
       config.strip_webhook_secret as string,
     );
-
-    console.log("Stripe Event:", event.type);
-
-    /* =========================================
-       CHECKOUT COMPLETED
-    ========================================= */
 
     if (event.type === "checkout.session.completed") {
       console.log("Checkout session completed!");
@@ -171,10 +120,6 @@ const handleWebhook = async (
         event.data.object as Stripe.Checkout.Session;
 
       console.log("Session ID:", session.id);
-
-      /* =========================================
-         GET METADATA
-      ========================================= */
 
       const rentalRequestId =
         session.metadata?.rentalRequestId;
@@ -200,10 +145,6 @@ const handleWebhook = async (
         stripeCustomerId,
       );
 
-      /* =========================================
-         VALIDATION
-      ========================================= */
-
       if (!rentalRequestId) {
         throw new Error(
           "Rental request ID missing from Stripe metadata",
@@ -215,10 +156,6 @@ const handleWebhook = async (
           "Payment intent ID missing",
         );
       }
-
-      /* =========================================
-         FIND PAYMENT
-      ========================================= */
 
       const payment = await prisma.payment.findUnique({
         where: {
@@ -234,10 +171,6 @@ const handleWebhook = async (
         );
       }
 
-      /* =========================================
-         CHECK IF ALREADY COMPLETED
-      ========================================= */
-
       if (payment.status === "COMPLETED") {
         console.log(
           "Payment already completed. Skipping update.",
@@ -245,10 +178,6 @@ const handleWebhook = async (
 
         return;
       }
-
-      /* =========================================
-         UPDATE PAYMENT
-      ========================================= */
 
       const updatedPayment =
         await prisma.payment.update({
@@ -277,10 +206,6 @@ const handleWebhook = async (
         },
       );
 
-      /* =========================================
-         UPDATE RENTAL REQUEST
-      ========================================= */
-
       const updatedRentalRequest =
         await prisma.rentalRequest.update({
           where: {
@@ -292,25 +217,6 @@ const handleWebhook = async (
           },
         });
 
-      console.log(
-        "Rental request updated successfully:",
-        {
-          id: updatedRentalRequest.id,
-          status: updatedRentalRequest.status,
-        },
-      );
-
-      console.log(
-        "=================================",
-      );
-
-      console.log(
-        "PAYMENT COMPLETED SUCCESSFULLY",
-      );
-
-      console.log(
-        "=================================",
-      );
     } else {
       console.log(
         "Unhandled event type:",
@@ -318,29 +224,11 @@ const handleWebhook = async (
       );
     }
 
-    console.log("WEBHOOK SUCCESS");
-
     return;
   } catch (error) {
-    console.error(
-      "=================================",
-    );
-
-    console.error("WEBHOOK ERROR");
-
-    console.error(error);
-
-    console.error(
-      "=================================",
-    );
-
     throw error;
   }
 };
-
-/* =========================================================
-   GET MY PAYMENTS
-========================================================= */
 
 const getMyPayments = async (userId: string) => {
   const payments = await prisma.payment.findMany({
@@ -383,10 +271,6 @@ const getMyPayments = async (userId: string) => {
       payment.rentalRequest.property.title,
   }));
 };
-
-/* =========================================================
-   GET ALL PAYMENTS
-========================================================= */
 
 const getAllPaymentsFromDB = async () => {
   const payments = await prisma.payment.findMany({
@@ -461,10 +345,6 @@ const getAllPaymentsFromDB = async () => {
     },
   }));
 };
-
-/* =========================================================
-   GET LANDLORD PAYMENTS
-========================================================= */
 
 const getLandlordPayments = async (
   landlordId: string,
@@ -549,10 +429,6 @@ const getLandlordPayments = async (
     },
   }));
 };
-
-/* =========================================================
-   EXPORT
-========================================================= */
 
 export const paymentService = {
   createCheckoutSession,
