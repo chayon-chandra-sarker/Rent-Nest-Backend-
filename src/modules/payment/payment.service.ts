@@ -1,4 +1,3 @@
-
 import Stripe from "stripe";
 import config from "../../config";
 import httpStatus from "http-status";
@@ -52,10 +51,7 @@ const createCheckoutSession = async (userId: string) => {
     /* Payment already completed */
 
     if (rentalRequest.payment?.status === "COMPLETED") {
-      throw new AppError(
-        httpStatus.BAD_REQUEST,
-        "Payment already completed",
-      );
+      throw new AppError(httpStatus.BAD_REQUEST, "Payment already completed");
     }
 
     /* Create pending payment */
@@ -105,10 +101,7 @@ const createCheckoutSession = async (userId: string) => {
   };
 };
 
-const handleWebhook = async (
-  payload: Buffer,
-  signature: string,
-) => {
+const handleWebhook = async (payload: Buffer, signature: string) => {
   console.log("Webhook hit");
 
   const endpointSecret = config.strip_webhook_secret;
@@ -123,45 +116,47 @@ const handleWebhook = async (
 
   switch (event.type) {
     case "checkout.session.completed": {
-      const session: Stripe.Checkout.Session =
-        event.data.object;
+      const session: Stripe.Checkout.Session = event.data.object;
 
-      const rentalRequestId =
-        session.metadata?.rentalRequestId;
+      const rentalRequestId = session.metadata?.rentalRequestId;
 
-      const paymentIntentId =
-        session.payment_intent as string;
+      const paymentIntentId = session.payment_intent as string;
 
-      const stripeCustomerId =
-        session.customer;
+      const stripeCustomerId = session.customer;
 
-      if (
-        !rentalRequestId ||
-        !paymentIntentId ||
-        !stripeCustomerId
-      ) {
+      if (!rentalRequestId || !paymentIntentId || !stripeCustomerId) {
         throw new Error("Missing payment data");
       }
 
-      await prisma.payment.update({
-        where: {
-          rentalRequestId,
-        },
+      await prisma.$transaction(async (tx) => {
+        await tx.payment.update({
+          where: {
+            rentalRequestId,
+          },
 
-        data: {
-          status: "COMPLETED",
-          transactionId: paymentIntentId,
-          paidAt: new Date(),
-        },
+          data: {
+            status: "COMPLETED",
+            transactionId: paymentIntentId,
+            paidAt: new Date(),
+          },
+        });
+
+        await tx.rentalRequest.update({
+          where: {
+            id: rentalRequestId,
+          },
+
+          data: {
+            status: "ACTIVE",
+          },
+        });
       });
 
       break;
     }
 
     default:
-      console.log(
-        `No event matched Unhandled event type ${event.type}.`,
-      );
+      console.log(`No event matched Unhandled event type ${event.type}.`);
   }
 };
 
@@ -197,8 +192,7 @@ const getMyPayments = async (userId: string) => {
     paidAt: payment.paidAt,
     transactionId: payment.transactionId,
 
-    propertyTitle:
-      payment.rentalRequest.property.title,
+    propertyTitle: payment.rentalRequest.property.title,
   }));
 };
 
@@ -333,4 +327,3 @@ export const paymentService = {
   getAllPaymentsFromDB,
   getLandlordPayments,
 };
-
