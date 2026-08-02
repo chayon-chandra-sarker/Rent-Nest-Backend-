@@ -1,3 +1,4 @@
+
 import Stripe from "stripe";
 import config from "../../config";
 import httpStatus from "http-status";
@@ -18,6 +19,7 @@ const createCheckoutSession = async (userId: string) => {
         payment: true,
       },
     });
+
     const user = await tx.user.findUniqueOrThrow({
       where: {
         id: userId,
@@ -25,13 +27,18 @@ const createCheckoutSession = async (userId: string) => {
     });
 
     let stripeCustomerId = user.stripeCustomerId;
+
     if (!stripeCustomerId) {
       const customer = await stripe.customers.create({
         email: user.email,
         name: user.name,
-        metadata: { userId: user.id },
+        metadata: {
+          userId: user.id,
+        },
       });
+
       stripeCustomerId = customer.id;
+
       await tx.user.update({
         where: {
           id: user.id,
@@ -42,9 +49,16 @@ const createCheckoutSession = async (userId: string) => {
       });
     }
 
+    /* Payment already completed */
+
     if (rentalRequest.payment?.status === "COMPLETED") {
-      throw new AppError(httpStatus.BAD_REQUEST, "Payment already completed");
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Payment already completed",
+      );
     }
+
+    /* Create pending payment */
 
     if (!rentalRequest.payment) {
       await tx.payment.create({
@@ -58,6 +72,8 @@ const createCheckoutSession = async (userId: string) => {
       });
     }
 
+    /* Stripe Checkout */
+
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -65,38 +81,65 @@ const createCheckoutSession = async (userId: string) => {
           quantity: 1,
         },
       ],
+
       mode: "payment",
+
       customer: stripeCustomerId,
+
       payment_method_types: ["card"],
+
       success_url: `${config.app_url}/payment?success=true`,
-      cancel_url: `${config.app_url}/payment?success=false`, //ata akta font end route page hoba
-      metadata: { rentalRequestId: rentalRequest.id },
+
+      cancel_url: `${config.app_url}/payment?success=false`,
+
+      metadata: {
+        rentalRequestId: rentalRequest.id,
+      },
     });
+
     return session.url;
   });
+
   return {
     paymentUrl: transactionResult,
   };
 };
 
-const handleWebhook = async (payload: Buffer, signature: string) => {
+const handleWebhook = async (
+  payload: Buffer,
+  signature: string,
+) => {
   console.log("Webhook hit");
+
   const endpointSecret = config.strip_webhook_secret;
+
   const event = stripe.webhooks.constructEvent(
     payload,
     signature,
     endpointSecret,
   );
-  console.log("Event:", event.type);
-  switch (event.type) {
-    case "checkout.session.completed":
-   
-      const session: Stripe.Checkout.Session = event.data.object;
-      const rentalRequestId = session.metadata?.rentalRequestId;
-      const paymentIntentId = session.payment_intent as string;
-      const stripeCustomerId = session.customer;
 
-      if (!rentalRequestId || !paymentIntentId || !stripeCustomerId) {
+  console.log("Event:", event.type);
+
+  switch (event.type) {
+    case "checkout.session.completed": {
+      const session: Stripe.Checkout.Session =
+        event.data.object;
+
+      const rentalRequestId =
+        session.metadata?.rentalRequestId;
+
+      const paymentIntentId =
+        session.payment_intent as string;
+
+      const stripeCustomerId =
+        session.customer;
+
+      if (
+        !rentalRequestId ||
+        !paymentIntentId ||
+        !stripeCustomerId
+      ) {
         throw new Error("Missing payment data");
       }
 
@@ -104,6 +147,7 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
         where: {
           rentalRequestId,
         },
+
         data: {
           status: "COMPLETED",
           transactionId: paymentIntentId,
@@ -111,15 +155,13 @@ const handleWebhook = async (payload: Buffer, signature: string) => {
         },
       });
 
-
       break;
-    // case "customer.subscription.updated":
-    //   break;
-    // case "customer.subscription.deleted":
-    //   break;
+    }
+
     default:
-      // Unexpected event type
-      console.log(`No event matched Unhandled event type ${event.type}.`);
+      console.log(
+        `No event matched Unhandled event type ${event.type}.`,
+      );
   }
 };
 
@@ -130,6 +172,7 @@ const getMyPayments = async (userId: string) => {
         tenantId: userId,
       },
     },
+
     include: {
       rentalRequest: {
         include: {
@@ -141,6 +184,7 @@ const getMyPayments = async (userId: string) => {
         },
       },
     },
+
     orderBy: {
       createdAt: "desc",
     },
@@ -152,7 +196,9 @@ const getMyPayments = async (userId: string) => {
     status: payment.status,
     paidAt: payment.paidAt,
     transactionId: payment.transactionId,
-    propertyTitle: payment.rentalRequest.property.title,
+
+    propertyTitle:
+      payment.rentalRequest.property.title,
   }));
 };
 
@@ -168,6 +214,7 @@ const getAllPaymentsFromDB = async () => {
               email: true,
             },
           },
+
           property: {
             select: {
               id: true,
@@ -178,6 +225,7 @@ const getAllPaymentsFromDB = async () => {
         },
       },
     },
+
     orderBy: {
       createdAt: "desc",
     },
@@ -185,11 +233,17 @@ const getAllPaymentsFromDB = async () => {
 
   return payments.map((payment) => ({
     id: payment.id,
+
     transactionId: payment.transactionId,
+
     amount: payment.amount,
+
     currency: payment.currency,
+
     status: payment.status,
+
     paidAt: payment.paidAt,
+
     createdAt: payment.createdAt,
 
     tenant: {
@@ -206,10 +260,77 @@ const getAllPaymentsFromDB = async () => {
   }));
 };
 
+const getLandlordPayments = async (landlordId: string) => {
+  const payments = await prisma.payment.findMany({
+    where: {
+      rentalRequest: {
+        property: {
+          landlordId,
+        },
+      },
+    },
+
+    include: {
+      rentalRequest: {
+        include: {
+          tenant: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+
+          property: {
+            select: {
+              id: true,
+              title: true,
+              location: true,
+            },
+          },
+        },
+      },
+    },
+
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return payments.map((payment) => ({
+    id: payment.id,
+
+    transactionId: payment.transactionId,
+
+    amount: payment.amount,
+
+    currency: payment.currency,
+
+    status: payment.status,
+
+    paidAt: payment.paidAt,
+
+    createdAt: payment.createdAt,
+
+    tenant: {
+      id: payment.rentalRequest.tenant.id,
+      name: payment.rentalRequest.tenant.name,
+      email: payment.rentalRequest.tenant.email,
+    },
+
+    property: {
+      id: payment.rentalRequest.property.id,
+      title: payment.rentalRequest.property.title,
+      location: payment.rentalRequest.property.location,
+    },
+  }));
+};
 
 export const paymentService = {
   createCheckoutSession,
   handleWebhook,
   getMyPayments,
   getAllPaymentsFromDB,
+  getLandlordPayments,
 };
+

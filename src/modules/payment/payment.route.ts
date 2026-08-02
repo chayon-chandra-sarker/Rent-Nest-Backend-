@@ -1,24 +1,39 @@
+
 import { Router } from "express";
 import { paymentController } from "./payment.controller";
 import { auth } from "../../middleware/auth";
 import { Role } from "../../../generated/prisma/enums";
 
 const router = Router();
-router.post("/checkout", auth(Role.TENANT), 
-paymentController.createCheckoutSession);
 
-router.post("/webhook", paymentController.handleWebhook);
+router.post(
+  "/checkout",
+  auth(Role.TENANT),
+  paymentController.createCheckoutSession,
+);
+
+router.post(
+  "/webhook",
+  paymentController.handleWebhook,
+);
 
 router.get(
   "/my-payments",
   auth(Role.TENANT),
-  paymentController.getMyPayments
+  paymentController.getMyPayments,
+);
+
+router.get(
+  "/landlord-payments",
+  auth(Role.LANDLORD),
+  paymentController.getLandlordPayments,
 );
 
 router.get(
   "/all-payments",
   auth(Role.ADMIN),
-  paymentController.getAllPayments
+  paymentController.getAllPayments,
 );
 
 export const paymentRouter = router;
+

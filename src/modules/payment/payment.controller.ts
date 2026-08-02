@@ -1,15 +1,20 @@
+
 import type { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
+
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { paymentService } from "./payment.service";
 import AppError from "../../errors/AppError";
 
-
 const createCheckoutSession = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user?.id;
-    const result = await paymentService.createCheckoutSession(userId as string);
+
+    const result =
+      await paymentService.createCheckoutSession(
+        userId as string,
+      );
 
     sendResponse(res, {
       success: true,
@@ -20,49 +25,97 @@ const createCheckoutSession = catchAsync(
   },
 );
 
+const handleWebhook = catchAsync(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const event = req.body as Buffer;
 
-const handleWebhook = catchAsync(async(req: Request, res:Response, next:NextFunction) => {
-  const event = req.body as Buffer;
-   const signature = req.headers['stripe-signature']!;
-   await paymentService.handleWebhook(event, signature as string)
+    const signature =
+      req.headers["stripe-signature"];
 
-   sendResponse(res, {
-    success: true,
-    statusCode: httpStatus.CREATED,
-    message: "webhook triggered created successfully",
-    data: null,
-   })
-});
+    await paymentService.handleWebhook(
+      event,
+      signature as string,
+    );
 
-const getMyPayments = catchAsync(async (req: Request, res: Response) => {
-  if (!req.user?.id) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Unauthorized");
-  }
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "Webhook triggered successfully",
+      data: null,
+    });
+  },
+);
 
-  const result = await paymentService.getMyPayments(req.user.id);
+const getMyPayments = catchAsync(
+  async (req: Request, res: Response) => {
+    if (!req.user?.id) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        "Unauthorized",
+      );
+    }
 
-  sendResponse(res, {
-    success: true,
-    statusCode: httpStatus.OK,
-    message: "My payments retrieved successfully",
-    data: result,
-  });
-});
+    const result =
+      await paymentService.getMyPayments(
+        req.user.id,
+      );
 
-const getAllPayments = catchAsync(async (req:Request, res:Response) => {
-  const result = await paymentService.getAllPaymentsFromDB();
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "My payments retrieved successfully",
+      data: result,
+    });
+  },
+);
 
-  sendResponse(res, {
-    success: true,
-    statusCode: httpStatus.OK,
-    message: "All payments retrieved successfully",
-    data: result,
-  });
-});
+const getLandlordPayments = catchAsync(
+  async (req: Request, res: Response) => {
+    if (!req.user?.id) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        "Unauthorized",
+      );
+    }
+
+    const result =
+      await paymentService.getLandlordPayments(
+        req.user.id,
+      );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message:
+        "Landlord payments retrieved successfully",
+      data: result,
+    });
+  },
+);
+
+const getAllPayments = catchAsync(
+  async (req: Request, res: Response) => {
+    const result =
+      await paymentService.getAllPaymentsFromDB();
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "All payments retrieved successfully",
+      data: result,
+    });
+  },
+);
 
 export const paymentController = {
   createCheckoutSession,
   handleWebhook,
   getMyPayments,
+  getLandlordPayments,
   getAllPayments,
 };
+

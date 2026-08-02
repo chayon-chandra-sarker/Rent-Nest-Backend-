@@ -100,10 +100,6 @@ const deletePropertyFromDB = async (id: string) => {
     where: {
       id,
     },
-    include: {
-      rentalRequests: true,
-      reviews: true,
-    },
   });
 
   if (!isExist) {
@@ -114,21 +110,18 @@ const deletePropertyFromDB = async (id: string) => {
   }
 
   await prisma.$transaction(async (tx) => {
-    // Delete rental requests
     await tx.rentalRequest.deleteMany({
       where: {
         propertyId: id,
       },
     });
 
-    // Delete reviews
     await tx.review.deleteMany({
       where: {
         propertyId: id,
       },
     });
 
-    // Delete property
     await tx.property.delete({
       where: {
         id,
