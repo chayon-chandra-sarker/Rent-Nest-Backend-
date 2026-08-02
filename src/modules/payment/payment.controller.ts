@@ -1,4 +1,3 @@
-
 import type { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 
@@ -8,13 +7,18 @@ import { paymentService } from "./payment.service";
 import AppError from "../../errors/AppError";
 
 const createCheckoutSession = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response) => {
     const userId = req.user?.id;
 
-    const result =
-      await paymentService.createCheckoutSession(
-        userId as string,
+    if (!userId) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        "Unauthorized",
       );
+    }
+
+    const result =
+      await paymentService.createCheckoutSession(userId);
 
     sendResponse(res, {
       success: true,
@@ -31,10 +35,17 @@ const handleWebhook = catchAsync(
     res: Response,
     next: NextFunction,
   ) => {
-    const event = req.body as Buffer;
-
     const signature =
       req.headers["stripe-signature"];
+
+    if (!signature) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Stripe signature is missing",
+      );
+    }
+
+    const event = req.body as Buffer;
 
     await paymentService.handleWebhook(
       event,
@@ -43,8 +54,8 @@ const handleWebhook = catchAsync(
 
     sendResponse(res, {
       success: true,
-      statusCode: httpStatus.CREATED,
-      message: "Webhook triggered successfully",
+      statusCode: httpStatus.OK,
+      message: "Webhook handled successfully",
       data: null,
     });
   },
@@ -90,8 +101,7 @@ const getLandlordPayments = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
-      message:
-        "Landlord payments retrieved successfully",
+      message: "Landlord payments retrieved successfully",
       data: result,
     });
   },
@@ -118,4 +128,3 @@ export const paymentController = {
   getLandlordPayments,
   getAllPayments,
 };
-
