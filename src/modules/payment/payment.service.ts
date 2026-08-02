@@ -6,17 +6,23 @@ import AppError from "../../errors/AppError";
 
 const stripe = new Stripe(config.strip_secret_key as string);
 
-const createCheckoutSession = async (userId: string) => {
-  const rentalRequest = await prisma.rentalRequest.findFirstOrThrow({
-    where: {
-      tenantId: userId,
-      status: "APPROVED",
-    },
-    include: {
-      property: true,
-      payment: true,
-    },
-  });
+
+const createCheckoutSession = async (
+  userId: string,
+  rentalRequestId: string,
+) => {
+  const rentalRequest =
+    await prisma.rentalRequest.findFirstOrThrow({
+      where: {
+        id: rentalRequestId,
+        tenantId: userId,
+        status: "APPROVED",
+      },
+      include: {
+        property: true,
+        payment: true,
+      },
+    });
 
   const user = await prisma.user.findUniqueOrThrow({
     where: {
@@ -94,11 +100,12 @@ const createCheckoutSession = async (userId: string) => {
     },
   });
 
- 
   return {
     paymentUrl: session.url,
   };
 };
+
+
 
 const handleWebhook = async (
   payload: Buffer,

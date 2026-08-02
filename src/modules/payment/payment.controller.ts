@@ -6,6 +6,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import { paymentService } from "./payment.service";
 import AppError from "../../errors/AppError";
 
+
 const createCheckoutSession = catchAsync(
   async (req: Request, res: Response) => {
     const userId = req.user?.id;
@@ -17,8 +18,20 @@ const createCheckoutSession = catchAsync(
       );
     }
 
+    const { rentalRequestId } = req.body;
+
+    if (!rentalRequestId) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Rental request ID is required",
+      );
+    }
+
     const result =
-      await paymentService.createCheckoutSession(userId);
+      await paymentService.createCheckoutSession(
+        userId,
+        rentalRequestId,
+      );
 
     sendResponse(res, {
       success: true,
@@ -28,6 +41,7 @@ const createCheckoutSession = catchAsync(
     });
   },
 );
+
 
 const handleWebhook = catchAsync(
   async (req: Request, res: Response) => {
