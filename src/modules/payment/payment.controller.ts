@@ -1,10 +1,14 @@
-import type { NextFunction, Request, Response } from "express";
+import type { Request, Response } from "express";
 import httpStatus from "http-status";
 
 import { catchAsync } from "../../utils/catchAsync";
 import { sendResponse } from "../../utils/sendResponse";
 import { paymentService } from "./payment.service";
 import AppError from "../../errors/AppError";
+
+/* =========================================================
+   CREATE CHECKOUT SESSION
+========================================================= */
 
 const createCheckoutSession = catchAsync(
   async (req: Request, res: Response) => {
@@ -29,12 +33,12 @@ const createCheckoutSession = catchAsync(
   },
 );
 
+/* =========================================================
+   STRIPE WEBHOOK
+========================================================= */
+
 const handleWebhook = catchAsync(
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
+  async (req: Request, res: Response) => {
     const signature =
       req.headers["stripe-signature"];
 
@@ -45,10 +49,10 @@ const handleWebhook = catchAsync(
       );
     }
 
-    const event = req.body as Buffer;
+    const payload = req.body as Buffer;
 
     await paymentService.handleWebhook(
-      event,
+      payload,
       signature as string,
     );
 
@@ -60,6 +64,10 @@ const handleWebhook = catchAsync(
     });
   },
 );
+
+/* =========================================================
+   GET MY PAYMENTS
+========================================================= */
 
 const getMyPayments = catchAsync(
   async (req: Request, res: Response) => {
@@ -84,6 +92,10 @@ const getMyPayments = catchAsync(
   },
 );
 
+/* =========================================================
+   GET LANDLORD PAYMENTS
+========================================================= */
+
 const getLandlordPayments = catchAsync(
   async (req: Request, res: Response) => {
     if (!req.user?.id) {
@@ -101,11 +113,16 @@ const getLandlordPayments = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
-      message: "Landlord payments retrieved successfully",
+      message:
+        "Landlord payments retrieved successfully",
       data: result,
     });
   },
 );
+
+/* =========================================================
+   GET ALL PAYMENTS
+========================================================= */
 
 const getAllPayments = catchAsync(
   async (req: Request, res: Response) => {
@@ -120,6 +137,10 @@ const getAllPayments = catchAsync(
     });
   },
 );
+
+/* =========================================================
+   EXPORT
+========================================================= */
 
 export const paymentController = {
   createCheckoutSession,
