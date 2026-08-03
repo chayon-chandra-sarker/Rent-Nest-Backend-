@@ -199,44 +199,6 @@ const deleteReviewFromDB = async (
   return null;
 };
 
-const getPropertyReviewsFromDB = async (
-  propertyId: string,
-) => {
-  const property = await prisma.property.findUnique({
-    where: {
-      id: propertyId,
-    },
-  });
-
-  if (!property) {
-    throw new AppError(
-      httpStatus.NOT_FOUND,
-      "Property not found",
-    );
-  }
-
-  const reviews = await prisma.review.findMany({
-    where: {
-      propertyId,
-    },
-
-    include: {
-      tenant: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  return reviews;
-};
-
 const getAllReviewsFromDB = async () => {
   const reviews = await prisma.review.findMany({
     include: {
@@ -296,7 +258,6 @@ export const reviewServices = {
   getMyReviewsFromDB,
   updateReviewIntoDB,
   deleteReviewFromDB,
-  getPropertyReviewsFromDB,
   getAllReviewsFromDB,
   adminDeleteReviewFromDB,
 };

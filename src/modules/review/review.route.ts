@@ -32,8 +32,8 @@ router.delete(
 );
 
 router.get(
-  "/property/:propertyId",
-  reviewControllers.getPropertyReviews,
+  "/all-reviews",
+  reviewControllers.getAllReviews,
 );
 
 router.get(
