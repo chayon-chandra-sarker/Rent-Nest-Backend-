@@ -71,6 +71,41 @@ const handleWebhook = catchAsync(
   },
 );
 
+const verifyCheckoutSession = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        "Unauthorized",
+      );
+    }
+
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+      throw new AppError(
+        httpStatus.BAD_REQUEST,
+        "Stripe session ID is required",
+      );
+    }
+
+    const result =
+      await paymentService.verifyCheckoutSession(
+        userId,
+        sessionId,
+      );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Payment verified successfully",
+      data: result,
+    });
+  },
+);
+
 const getMyPayments = catchAsync(
   async (req: Request, res: Response) => {
     if (!req.user?.id) {
@@ -138,4 +173,5 @@ export const paymentController = {
   getMyPayments,
   getLandlordPayments,
   getAllPayments,
+  verifyCheckoutSession,
 };

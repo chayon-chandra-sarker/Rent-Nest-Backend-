@@ -17,6 +17,12 @@ router.post(
   paymentController.handleWebhook,
 );
 
+router.post(
+  "/verify-session",
+  auth(Role.TENANT),
+  paymentController.verifyCheckoutSession,
+);
+
 router.get(
   "/my-payments",
   auth(Role.TENANT),

@@ -91,7 +91,7 @@ const createCheckoutSession = async (
 
     payment_method_types: ["card"],
 
-    success_url: `${config.app_url}/payment?success=true`,
+    success_url: `${config.app_url}/payment?success=true&session_id={CHECKOUT_SESSION_ID}`,
 
     cancel_url: `${config.app_url}/payment?canceled=true`,
 
@@ -235,6 +235,90 @@ const handleWebhook = async (
   } catch (error) {
     throw error;
   }
+};
+
+const verifyCheckoutSession = async (
+  userId: string,
+  sessionId: string,
+) => {
+  const session = await stripe.checkout.sessions.retrieve(
+    sessionId,
+  );
+
+  if (session.payment_status !== "paid") {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Payment has not been completed",
+    );
+  }
+
+  const rentalRequestId =
+    session.metadata?.rentalRequestId;
+
+  if (!rentalRequestId) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Rental request ID missing from Stripe session",
+    );
+  }
+
+  const rentalRequest =
+    await prisma.rentalRequest.findFirst({
+      where: {
+        id: rentalRequestId,
+        tenantId: userId,
+      },
+      include: {
+        payment: true,
+      },
+    });
+
+  if (!rentalRequest) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      "Rental request not found",
+    );
+  }
+
+  const paymentIntentId =
+    session.payment_intent as string;
+
+  if (!paymentIntentId) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Payment intent ID missing",
+    );
+  }
+
+  await prisma.$transaction(async (tx) => {
+    if (rentalRequest.payment) {
+      await tx.payment.update({
+        where: {
+          id: rentalRequest.payment.id,
+        },
+        data: {
+          status: "COMPLETED",
+          transactionId: paymentIntentId,
+          paidAt: new Date(),
+        },
+      });
+    }
+
+    await tx.rentalRequest.update({
+      where: {
+        id: rentalRequestId,
+      },
+      data: {
+        status: "ACTIVE",
+      },
+    });
+  });
+
+  return {
+    success: true,
+    status: "COMPLETED",
+    rentalStatus: "ACTIVE",
+  };
 };
 
 const getMyPayments = async (userId: string) => {
@@ -443,4 +527,5 @@ export const paymentService = {
   getMyPayments,
   getAllPaymentsFromDB,
   getLandlordPayments,
+  verifyCheckoutSession,
 };
