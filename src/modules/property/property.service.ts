@@ -1,15 +1,12 @@
-
 import httpStatus from "http-status";
 import AppError from "../../errors/AppError";
 import { prisma } from "../../lib/prisma";
 import type { Prisma } from "../../../generated/prisma/client";
 import type { propertyPayload } from "./property.interface";
 
-
-
 const createPropertyIntoDB = async (
   userId: string,
-  payload: propertyPayload
+  payload: propertyPayload,
 ) => {
   const result = await prisma.property.create({
     data: {
@@ -26,23 +23,23 @@ const createPropertyIntoDB = async (
 };
 
 const getAllPropertiesFromDB = async () => {
-const result = await prisma.property.findMany({
-  include: {
-    landlord: {
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        image: true,
+  const result = await prisma.property.findMany({
+    include: {
+      landlord: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          image: true,
+        },
       },
+      category: true,
     },
-    category: true,
-  },
-  orderBy: {
-    createdAt: "desc",
-  },
-});
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   return result;
 };
@@ -69,7 +66,7 @@ const getSinglePropertyFromDB = async (id: string) => {
 
 const updatePropertyIntoDB = async (
   id: string,
-  payload: Prisma.PropertyUpdateInput
+  payload: Prisma.PropertyUpdateInput,
 ) => {
   const isExist = await prisma.property.findUnique({
     where: {
@@ -95,17 +92,18 @@ const updatePropertyIntoDB = async (
   return result;
 };
 
-const deletePropertyFromDB = async (id: string) => {
-  const isExist = await prisma.property.findUnique({
+const deletePropertyFromDB = async (id: string, userId: string) => {
+  const isExist = await prisma.property.findFirst({
     where: {
       id,
+      landlordId: userId,
     },
   });
 
   if (!isExist) {
     throw new AppError(
       httpStatus.NOT_FOUND,
-      "Property not found"
+      "Property not found or you are not the owner",
     );
   }
 
@@ -119,9 +117,7 @@ const deletePropertyFromDB = async (id: string) => {
       },
     });
 
-    const rentalRequestIds = rentalRequests.map(
-      (request) => request.id
-    );
+    const rentalRequestIds = rentalRequests.map((request) => request.id);
 
     if (rentalRequestIds.length > 0) {
       await tx.payment.deleteMany({

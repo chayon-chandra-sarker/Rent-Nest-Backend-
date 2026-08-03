@@ -61,19 +61,31 @@ const updateProperty = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const deleteProperty = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+const deleteProperty = catchAsync(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const userId = req.user?.id;
 
-  await PropertyServices.deletePropertyFromDB(id as string);
+    if (!userId) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        "You are not authorized"
+      );
+    }
 
-  sendResponse(res, {
-    statusCode: httpStatus.OK,
-    success: true,
-    message: "Property deleted successfully",
-    data: null,
-  });
-});
+    await PropertyServices.deletePropertyFromDB(
+      id as string,
+      userId
+    );
 
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Property deleted successfully",
+      data: null,
+    });
+  }
+);
 const getAllPropertiesForAdmin = catchAsync(
   async (req: Request, res: Response) => {
     const result =
