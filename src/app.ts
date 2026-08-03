@@ -21,7 +21,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://rent-nest-my.vercel.app/",
+      "https://rent-nest-frontend-xi.vercel.app",
     ],
     credentials: true,
   })
