@@ -44,6 +44,31 @@ const getAllPropertiesFromDB = async () => {
   return result;
 };
 
+const getMyPropertiesFromDB = async (userId: string) => {
+  const result = await prisma.property.findMany({
+    where: {
+      landlordId: userId,
+    },
+    include: {
+      landlord: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          image: true,
+        },
+      },
+      category: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  return result;
+};
+
 const getSinglePropertyFromDB = async (id: string) => {
   const result = await prisma.property.findUnique({
     where: {
@@ -186,4 +211,5 @@ export const PropertyServices = {
   updatePropertyIntoDB,
   deletePropertyFromDB,
   getAllPropertiesForAdminFromDB,
+  getMyPropertiesFromDB,
 };

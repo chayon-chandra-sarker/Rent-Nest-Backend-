@@ -35,6 +35,29 @@ const getAllProperties = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMyProperties = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        "You are not authorized"
+      );
+    }
+
+    const result =
+      await PropertyServices.getMyPropertiesFromDB(userId);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "My properties retrieved successfully",
+      data: result,
+    });
+  }
+);
+
 const getSingleProperty = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
 
@@ -107,4 +130,5 @@ export const propertyControllers = {
   updateProperty,
   deleteProperty,
   getAllPropertiesForAdmin,
+  getMyProperties,
 };

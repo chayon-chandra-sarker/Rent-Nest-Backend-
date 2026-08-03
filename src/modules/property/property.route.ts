@@ -11,6 +11,12 @@ router.get(
 );
 
 router.get(
+  "/my-properties",
+  auth(Role.LANDLORD),
+  propertyControllers.getMyProperties
+);
+
+router.get(
   "/single/:id",
   propertyControllers.getSingleProperty
 );
