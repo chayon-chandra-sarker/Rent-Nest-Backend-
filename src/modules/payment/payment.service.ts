@@ -241,9 +241,10 @@ const verifyCheckoutSession = async (
   userId: string,
   sessionId: string,
 ) => {
-  const session = await stripe.checkout.sessions.retrieve(
-    sessionId,
-  );
+  const session =
+    await stripe.checkout.sessions.retrieve(
+      sessionId,
+    );
 
   if (session.payment_status !== "paid") {
     throw new AppError(
@@ -263,10 +264,9 @@ const verifyCheckoutSession = async (
   }
 
   const rentalRequest =
-    await prisma.rentalRequest.findFirst({
+    await prisma.rentalRequest.findUnique({
       where: {
         id: rentalRequestId,
-        tenantId: userId,
       },
       include: {
         payment: true,
@@ -277,6 +277,13 @@ const verifyCheckoutSession = async (
     throw new AppError(
       httpStatus.NOT_FOUND,
       "Rental request not found",
+    );
+  }
+
+  if (rentalRequest.tenantId !== userId) {
+    throw new AppError(
+      httpStatus.FORBIDDEN,
+      "You don't have permission to verify this payment",
     );
   }
 
