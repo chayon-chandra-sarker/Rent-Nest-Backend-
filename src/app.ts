@@ -19,9 +19,12 @@ import { landlordRequestRouter } from "./modules/landlordRequest/landlord-reques
 const app: Application = express();
 app.use(
   cors({
-    origin: config.app_url,
+    origin: [
+      "http://localhost:3000",
+      "https://rent-nest-my.vercel.app/",
+    ],
     credentials: true,
-  }),
+  })
 );
 
 app.use("/api/payment/webhook",  express.raw({type: 'application/json'}));
