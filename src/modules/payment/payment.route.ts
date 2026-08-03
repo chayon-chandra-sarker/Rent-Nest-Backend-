@@ -19,7 +19,7 @@ router.post(
 
 router.post(
   "/verify-session",
-  auth(Role.TENANT),
+  auth(),
   paymentController.verifyCheckoutSession,
 );
 
