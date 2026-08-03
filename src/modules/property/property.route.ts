@@ -39,7 +39,6 @@ router.delete(
   propertyControllers.deleteProperty
 );
 
-// Admin
 router.get(
   "/admin/properties",
   auth(Role.ADMIN),

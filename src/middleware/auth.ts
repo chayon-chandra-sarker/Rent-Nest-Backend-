@@ -1,7 +1,12 @@
-import type { NextFunction, Request, Response } from "express";
+import type {
+  NextFunction,
+  Request,
+  Response,
+} from "express";
 import type { JwtPayload } from "jsonwebtoken";
 import httpStatus from "http-status";
 import type { Role } from "../../generated/prisma/enums";
+
 import { prisma } from "../lib/prisma";
 import { jwtUtils } from "../utils/jwt";
 import { catchAsync } from "../utils/catchAsync";
@@ -22,62 +27,83 @@ declare global {
 }
 
 export const auth = (...requiredRoles: Role[]) => {
-  return catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const token =
-      req.cookies.accessToken
+  return catchAsync(
+    async (
+      req: Request,
+      res: Response,
+      next: NextFunction,
+    ) => {
+      const token = req.cookies.accessToken
         ? req.cookies.accessToken
-        : req.headers.authorization?.startsWith("Bearer ")
-        ? req.headers.authorization.split(" ")[1]
-        : req.headers.authorization;
+        : req.headers.authorization?.startsWith(
+              "Bearer ",
+            )
+          ? req.headers.authorization.split(" ")[1]
+          : req.headers.authorization;
 
-    if (!token) {
-      throw new AppError(
-        httpStatus.UNAUTHORIZED,
-        "You are not logged in. Please log in to access this resource."
-      );
-    }
+      if (!token) {
+        throw new AppError(
+          httpStatus.UNAUTHORIZED,
+          "You are not logged in. Please log in to access this resource.",
+        );
+      }
 
-    const decoded = jwtUtils.verifiedToken(
-      token,
-      config.jwt_access_secret
-    ) as JwtPayload;
+      const decoded = jwtUtils.verifiedToken(
+        token,
+        config.jwt_access_secret,
+      ) as JwtPayload;
 
-    const { id, email, name, role } = decoded;
+      const { id } = decoded;
 
-    if (requiredRoles.length && !requiredRoles.includes(role)) {
-      throw new AppError(
-        httpStatus.FORBIDDEN,
-        "You don't have permission to access this resource."
-      );
-    }
+      if (!id) {
+        throw new AppError(
+          httpStatus.UNAUTHORIZED,
+          "Invalid authentication token.",
+        );
+      }
 
-    const user = await prisma.user.findUnique({
-      where: {
-        id,
-      },
-    });
+      // Get the latest user information from database.
+      // Do not trust the role stored inside an old JWT.
+      const user = await prisma.user.findUnique({
+        where: {
+          id,
+        },
+      });
 
-    if (!user) {
-      throw new AppError(
-        httpStatus.NOT_FOUND,
-        "User not found. Please login again."
-      );
-    }
+      if (!user) {
+        throw new AppError(
+          httpStatus.NOT_FOUND,
+          "User not found. Please login again.",
+        );
+      }
 
-    if (user.status === "BANNED") {
-      throw new AppError(
-        httpStatus.FORBIDDEN,
-        "Your account has been blocked. Please contact support."
-      );
-    }
+      if (user.status === "BANNED") {
+        throw new AppError(
+          httpStatus.FORBIDDEN,
+          "Your account has been blocked. Please contact support.",
+        );
+      }
 
-    req.user = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    };
+      // Check the current database role instead of
+      // relying on the role stored in the JWT.
+      if (
+        requiredRoles.length &&
+        !requiredRoles.includes(user.role)
+      ) {
+        throw new AppError(
+          httpStatus.FORBIDDEN,
+          "You don't have permission to access this resource.",
+        );
+      }
 
-    next();
-  });
+      req.user = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      };
+
+      next();
+    },
+  );
 };
