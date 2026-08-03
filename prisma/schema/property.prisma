@@ -11,7 +11,7 @@ model Property {
   bedrooms  Int
   bathrooms Int
   amenities String[]
-  image       String?
+  image     String?
 
   isAvailable Boolean @default(true)
 

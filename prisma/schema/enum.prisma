@@ -26,3 +26,9 @@ enum PaymentStatus {
   FAILED
   PENDING
 }
+
+enum LandlordRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}

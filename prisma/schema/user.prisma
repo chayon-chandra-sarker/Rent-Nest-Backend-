@@ -7,19 +7,21 @@ model User {
   role   Role   @default(TENANT)
   status Status @default(ACTIVE)
 
-  phone   String? @unique
-  image   String?
-  address String?
+  phone            String? @unique
+  image            String?
+  address          String?
   stripeCustomerId String? @unique
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
- 
 
   properties Property[]
 
   rentalRequests RentalRequest[]
 
   reviews Review[]
+
+  landlordRequest LandlordRequest?
 
   @@map("users")
 }

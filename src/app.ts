@@ -14,6 +14,7 @@ import { rentalRequestRoutes } from "./modules/rentalRequest/rentalRequest.route
 import { reviewRoutes } from "./modules/review/review.route";
 import { paymentRouter } from "./modules/payment/payment.route";
 import { dashboardRoute } from "./modules/dashboard/dashboard.route";
+import { landlordRequestRouter } from "./modules/landlordRequest/landlord-request.route";
 
 const app: Application = express();
 app.use(
@@ -50,6 +51,7 @@ app.use("/api/rental", rentalRequestRoutes);
 app.use("/api/review", reviewRoutes);
 app.use("/api/payment", paymentRouter);
 app.use("/api/dashboard", dashboardRoute);
+app.use("/api/landlord", landlordRequestRouter);
 
 app.use(globalErrorHandler);
 export default app;
