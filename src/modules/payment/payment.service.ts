@@ -238,7 +238,6 @@ const handleWebhook = async (
 };
 
 const verifyCheckoutSession = async (
-  userId: string,
   sessionId: string,
 ) => {
   const session =
@@ -277,13 +276,6 @@ const verifyCheckoutSession = async (
     throw new AppError(
       httpStatus.NOT_FOUND,
       "Rental request not found",
-    );
-  }
-
-  if (rentalRequest.tenantId !== userId) {
-    throw new AppError(
-      httpStatus.FORBIDDEN,
-      "You don't have permission to verify this payment",
     );
   }
 

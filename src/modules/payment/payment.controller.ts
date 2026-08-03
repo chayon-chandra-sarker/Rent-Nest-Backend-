@@ -73,15 +73,6 @@ const handleWebhook = catchAsync(
 
 const verifyCheckoutSession = catchAsync(
   async (req: Request, res: Response) => {
-    const userId = req.user?.id;
-
-    if (!userId) {
-      throw new AppError(
-        httpStatus.UNAUTHORIZED,
-        "Unauthorized",
-      );
-    }
-
     const { sessionId } = req.body;
 
     if (!sessionId) {
@@ -93,7 +84,6 @@ const verifyCheckoutSession = catchAsync(
 
     const result =
       await paymentService.verifyCheckoutSession(
-        userId,
         sessionId,
       );
 
