@@ -4,11 +4,6 @@ A secure and scalable REST API for a Rental Property Management System built wit
 
 This backend allows **Admins**, **Landlords**, and **Tenants** to manage rental properties, rental requests, payments, and user accounts through role-based authentication.
 
-Admin Credentials:
--->email: chayon@gmail.com
--->password: 12345
-
----
 
 ## 🚀 Live API
 
