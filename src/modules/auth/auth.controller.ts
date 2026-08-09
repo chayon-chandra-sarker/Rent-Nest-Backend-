@@ -111,9 +111,7 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// =========================
-// Logout
-// =========================
+
 const logout = catchAsync(async (req: Request, res: Response) => {
   res.clearCookie("accessToken", {
     httpOnly: true,
@@ -135,9 +133,30 @@ const logout = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getMe = catchAsync(async (req: Request, res: Response) => {
+  if (!req.user) {
+    return sendResponse(res, {
+      success: false,
+      statusCode: httpStatus.UNAUTHORIZED,
+      message: "Unauthorized",
+      data: null,
+    });
+  }
+
+  const user = await authService.getMe(req.user.id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "User profile retrieved successfully",
+    data: user,
+  });
+});
+
 export const authController = {
   loginUser,
   googleLogin,
   refreshToken,
   logout,
+  getMe,
 };
