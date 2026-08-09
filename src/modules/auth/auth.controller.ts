@@ -1,4 +1,3 @@
-
 import type { Request, Response } from "express";
 import { catchAsync } from "../../utils/catchAsync";
 import { authService } from "./auth.service";
@@ -38,6 +37,48 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const googleLogin = catchAsync(async (req: Request, res: Response) => {
+  const { idToken } = req.body;
+
+  if (!idToken) {
+    return sendResponse(res, {
+      success: false,
+      statusCode: httpStatus.BAD_REQUEST,
+      message: "Google ID token is required",
+      data: null,
+    });
+  }
+
+  const { accessToken, refreshToken } =
+    await authService.googleLogin(idToken);
+
+  // Access Token Cookie
+  res.cookie("accessToken", accessToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24,
+  });
+
+  // Refresh Token Cookie
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+  });
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Google login successful",
+    data: {
+      accessToken,
+      refreshToken,
+    },
+  });
+});
+
 const refreshToken = catchAsync(async (req: Request, res: Response) => {
   const { refreshToken } = req.cookies;
 
@@ -70,7 +111,33 @@ const refreshToken = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// =========================
+// Logout
+// =========================
+const logout = catchAsync(async (req: Request, res: Response) => {
+  res.clearCookie("accessToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
+
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+  });
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "User logged out successfully",
+    data: null,
+  });
+});
+
 export const authController = {
   loginUser,
+  googleLogin,
   refreshToken,
+  logout,
 };

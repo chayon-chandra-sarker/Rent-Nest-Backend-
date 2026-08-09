@@ -11,6 +11,7 @@ export default{
     bcrypt_salt_rounds: process.env.BCRYPT_SALT_ROUNDS,
     jwt_access_secret: process.env.JWT_ACCESS_SECRET!,
     jwt_refresh_secret: process.env.JWT_REFRESH_SECRET!,
+    google_client_id: process.env.GOOGLE_CLIENT_ID!,
     jwt_access_expires_in: (process.env.JWT_ACCESS_EXPIRES_IN || "1d") as NonNullable<
       SignOptions["expiresIn"]
     >,

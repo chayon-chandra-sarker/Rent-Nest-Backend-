@@ -1,8 +1,15 @@
+
 import { Router } from "express";
 import { authController } from "./auth.controller";
 
 const router = Router();
-router.post("/login",authController.loginUser);
+
+router.post("/login", authController.loginUser);
+
+router.post("/google", authController.googleLogin);
+router.post("/logout", authController.logout);
+
 router.post("/refresh-token", authController.refreshToken);
 
 export const authRoutes = router;
+
