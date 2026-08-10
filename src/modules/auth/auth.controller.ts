@@ -38,7 +38,9 @@ const loginUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 const googleLogin = catchAsync(async (req: Request, res: Response) => {
+
   const { idToken } = req.body;
+
 
   if (!idToken) {
     return sendResponse(res, {
