@@ -10,6 +10,8 @@ const getAdminDashboardStatsFromDB = async () => {
     completedPaymentHistory,
     pendingRentalRequests,
     approvedRentalRequests,
+    activeRentalRequests,
+    completedRentalRequests,
     rejectedRentalRequests,
   ] = await Promise.all([
     // Total users
@@ -69,6 +71,20 @@ const getAdminDashboardStatsFromDB = async () => {
       },
     }),
 
+    // Active rental requests
+    prisma.rentalRequest.count({
+      where: {
+        status: "ACTIVE",
+      },
+    }),
+
+    // Completed rental requests
+    prisma.rentalRequest.count({
+      where: {
+        status: "COMPLETED",
+      },
+    }),
+
     // Rejected rental requests
     prisma.rentalRequest.count({
       where: {
@@ -77,7 +93,10 @@ const getAdminDashboardStatsFromDB = async () => {
     }),
   ]);
 
-  // Monthly revenue calculation
+  // ================================
+  // Monthly Revenue Calculation
+  // ================================
+
   const monthlyRevenueMap: Record<string, number> = {};
 
   completedPaymentHistory.forEach((payment) => {
@@ -100,11 +119,17 @@ const getAdminDashboardStatsFromDB = async () => {
     }),
   );
 
+  // ================================
+  // Final Dashboard Response
+  // ================================
+
   return {
     totalUsers,
     totalProperties,
     totalRentalRequests,
+
     totalRevenue: totalRevenue._sum.amount ?? 0,
+
     completedPayments,
 
     monthlyRevenue,
@@ -112,6 +137,8 @@ const getAdminDashboardStatsFromDB = async () => {
     rentalRequests: {
       pending: pendingRentalRequests,
       approved: approvedRentalRequests,
+      active: activeRentalRequests,
+      completed: completedRentalRequests,
       rejected: rejectedRentalRequests,
     },
   };
