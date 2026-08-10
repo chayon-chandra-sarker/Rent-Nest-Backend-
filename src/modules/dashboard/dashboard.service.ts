@@ -8,19 +8,27 @@ const getAdminDashboardStatsFromDB = async () => {
     completedPayments,
     totalRevenue,
     completedPaymentHistory,
+    pendingRentalRequests,
+    approvedRentalRequests,
+    rejectedRentalRequests,
   ] = await Promise.all([
+    // Total users
     prisma.user.count(),
 
+    // Total properties
     prisma.property.count(),
 
+    // Total rental requests
     prisma.rentalRequest.count(),
 
+    // Completed payments count
     prisma.payment.count({
       where: {
         status: "COMPLETED",
       },
     }),
 
+    // Total revenue
     prisma.payment.aggregate({
       where: {
         status: "COMPLETED",
@@ -30,6 +38,7 @@ const getAdminDashboardStatsFromDB = async () => {
       },
     }),
 
+    // Completed payment history
     prisma.payment.findMany({
       where: {
         status: "COMPLETED",
@@ -43,6 +52,27 @@ const getAdminDashboardStatsFromDB = async () => {
       },
       orderBy: {
         paidAt: "asc",
+      },
+    }),
+
+    // Pending rental requests
+    prisma.rentalRequest.count({
+      where: {
+        status: "PENDING",
+      },
+    }),
+
+    // Approved rental requests
+    prisma.rentalRequest.count({
+      where: {
+        status: "APPROVED",
+      },
+    }),
+
+    // Rejected rental requests
+    prisma.rentalRequest.count({
+      where: {
+        status: "REJECTED",
       },
     }),
   ]);
@@ -76,7 +106,14 @@ const getAdminDashboardStatsFromDB = async () => {
     totalRentalRequests,
     totalRevenue: totalRevenue._sum.amount ?? 0,
     completedPayments,
+
     monthlyRevenue,
+
+    rentalRequests: {
+      pending: pendingRentalRequests,
+      approved: approvedRentalRequests,
+      rejected: rejectedRentalRequests,
+    },
   };
 };
 
